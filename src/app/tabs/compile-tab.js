@@ -311,7 +311,7 @@ function compileTab (container, appAPI, appEvents, opts) {
       if (!error) {
         if (data.contracts) {
           for (var contract in data.contracts) {
-            appAPI.compilationMessage(contract, $(errorContainer), {type: 'success'})
+            appAPI.compilationMessage({ formattedMessage: contract, severity: 'success' }, $(errorContainer))
           }
         }
       }
@@ -320,7 +320,7 @@ function compileTab (container, appAPI, appEvents, opts) {
     appEvents.staticAnalysis.register('staticAnaysisWarning', (count) => {
       if (count) {
         var errorContainer = container.querySelector('.error')
-        appAPI.compilationMessage(`Static Analysis raised ${count} warning(s) that requires your attention.`, $(errorContainer), {
+        appAPI.compilationMessage({ severity: 'warning', formattedMessage: `Static Analysis raised ${count} warning(s) that requires your attention.` }, $(errorContainer), {
           type: 'warning',
           click: () => appAPI.switchTab('staticanalysisView')
         })
@@ -345,13 +345,15 @@ function compileTab (container, appAPI, appEvents, opts) {
       contractNames.innerHTML = ''
       if (success) {
         contractNames.removeAttribute('disabled')
-        for (var name in data.contracts) {
-          contractsDetails[name] = parseContracts(name, data.contracts[name], appAPI.currentCompiledSourceCode())
-          var contractName = yo`
-            <option>
-              ${name}
-            </option>`
-          contractNames.appendChild(contractName)
+        for (var file in data.contracts) {
+          for (var name in data.contracts[file]) {
+            contractsDetails[name] = parseContracts(name, data.contracts[file][name])
+            var contractName = yo`
+              <option>
+                ${name}
+              </option>`
+            contractNames.appendChild(contractName)
+          }
         }
         appAPI.resetDapp(contractsDetails)
       } else {

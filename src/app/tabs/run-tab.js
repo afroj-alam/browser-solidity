@@ -296,8 +296,8 @@ function contractDropdown (appAPI, appEvents, instanceContainer) {
 
   function setInputParamsPlaceHolder () {
     createButtonInput.value = ''
-    if (appAPI.getContracts() && selectContractNames.selectedIndex >= 0 && selectContractNames.children.length > 0) {
-      var contract = appAPI.getContracts()[selectContractNames.children[selectContractNames.selectedIndex].innerHTML]
+    if (appAPI.getContract && selectContractNames.selectedIndex >= 0 && selectContractNames.children.length > 0) {
+      var contract = appAPI.getContract(selectContractNames.children[selectContractNames.selectedIndex].innerHTML)
       var ctrabi = txHelper.getConstructorInterface(contract.interface)
       if (ctrabi.inputs.length) {
         createButtonInput.setAttribute('placeholder', txHelper.inputParametersDeclarationToString(ctrabi.inputs))
@@ -314,9 +314,8 @@ function contractDropdown (appAPI, appEvents, instanceContainer) {
   // ADD BUTTONS AT ADDRESS AND CREATE
   function createInstance () {
     var contractNames = document.querySelector(`.${css.contractNames.classNames[0]}`)
-    var contracts = appAPI.getContracts()
     var contractName = contractNames.children[contractNames.selectedIndex].innerHTML
-    var contract = appAPI.getContracts()[contractName]
+    var contract = appAPI.getContract(contractName)
 
     if (contract.bytecode.length === 0) {
       modalDialogCustom.alert('This contract does not implement all functions and thus cannot be created.')
@@ -356,7 +355,7 @@ function contractDropdown (appAPI, appEvents, instanceContainer) {
   function loadFromAddress (appAPI) {
     noInstancesText.style.display = 'none'
     var contractNames = document.querySelector(`.${css.contractNames.classNames[0]}`)
-    var contract = appAPI.getContracts()[contractNames.children[contractNames.selectedIndex].innerHTML]
+    var contract = appAPI.getContract(contractNames.children[contractNames.selectedIndex].innerHTML)
     var address = atAddressButtonInput.value
     instanceContainer.appendChild(appAPI.udapp().renderInstance(contract, address, selectContractNames.value))
   }
@@ -367,8 +366,10 @@ function contractDropdown (appAPI, appEvents, instanceContainer) {
     contractNames.innerHTML = ''
     if (success) {
       selectContractNames.removeAttribute('disabled')
-      for (var name in data.contracts) {
-        contractNames.appendChild(yo`<option>${name}</option>`)
+      for (var file in data.contracts) {
+        for (var name in data.contracts[file]) {
+          contractNames.appendChild(yo`<option>${name}</option>`)
+        }
       }
     } else {
       selectContractNames.setAttribute('disabled', true)

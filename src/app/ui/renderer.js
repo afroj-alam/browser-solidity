@@ -2,8 +2,6 @@
 
 var $ = require('jquery')
 
-var utils = require('../../lib/utils')
-
 /**
  * After refactor, the renderer is only used to render error/warning
  * TODO: This don't need to be an object anymore. Simplify and just export the renderError function.
@@ -17,18 +15,15 @@ Renderer.prototype.error = function (message, container, options) {
   if (container === undefined) return
   var self = this
   var opt = options || {}
-  if (!opt.type) {
-    opt.type = utils.errortype(message)
-  }
   var $pre
   if (opt.isHTML) {
-    $pre = $(opt.useSpan ? '<span />' : '<pre />').html(message)
+    $pre = $(opt.useSpan ? '<span />' : '<pre />').html(message.formattedMessage)
   } else {
-    $pre = $(opt.useSpan ? '<span />' : '<pre />').text(message)
+    $pre = $(opt.useSpan ? '<span />' : '<pre />').text(message.formattedMessage)
   }
-  var $error = $('<div class="sol ' + opt.type + '"><div class="close"><i class="fa fa-close"></i></div></div>').prepend($pre)
+  var $error = $('<div class="sol ' + message.severity + '"><div class="close"><i class="fa fa-close"></i></div></div>').prepend($pre)
   container.append($error)
-  var err = message.match(/^([^:]*):([0-9]*):(([0-9]*):)? /)
+  var err = message.formattedMessage.match(/^([^:]*):([0-9]*):(([0-9]*):)? /)
   if (err) {
     var errFile = err[1]
     var errLine = parseInt(err[2], 10) - 1
@@ -37,8 +32,8 @@ Renderer.prototype.error = function (message, container, options) {
       self.appAPI.error(errFile, {
         row: errLine,
         column: errCol,
-        text: message,
-        type: opt.type
+        text: message.formattedMessage,
+        type: message.severity
       })
     }
     $error.click(function (ev) {
@@ -46,7 +41,7 @@ Renderer.prototype.error = function (message, container, options) {
     })
   } else if (options && options.click) {
     $error.click(function (ev) {
-      options.click(message)
+      options.click(message.formattedMessage)
     })
   }
 
